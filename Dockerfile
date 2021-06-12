@@ -29,6 +29,7 @@ RUN /etc/init.d/postgresql start && \
     psql -d gis -c "CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;"
 RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
 RUN echo "listen_addresses='*'" >> /etc/postgresql/10/main/postgresql.conf
+USER root
 
 #Set all environment variables to use everything we just set up
 ENV PGHOST=localhost
