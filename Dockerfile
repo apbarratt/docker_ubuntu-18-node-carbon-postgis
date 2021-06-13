@@ -32,7 +32,6 @@ RUN echo "listen_addresses='*'" >> /etc/postgresql/10/main/postgresql.conf
 USER root
 
 #Set all environment variables to use everything we just set up
-ENV PGHOST=localhost
 ENV PGDATABASE=gis
 ENV PGUSER=docker
 ENV PGPASSWORD=docker
