@@ -1,9 +1,17 @@
 # Using my own ubuntu image for this, which is just the official one plus node carbon, git, etc.
 FROM apbarratt/ubuntu-18-with-node-carbon
 
+# We'll just stick that fix to the mesg nonsense docker ubuntu does in here
+RUN sed -i ~/.profile -e 's/mesg n || true/tty -s \&\& mesg n/g'
+
+# And make sure we're using the right shell
+SHELL ["/bin/bash", "-l", "-c"]
+
 # TODO: Find way of setting TZ from host machine timezone.
 ENV TZ=Europe/Isle_of_Man
 ENV DEBIAN_FRONTEND=noninteractive
+ENV POSTGIS_DB="template_postgis"
+ENV OSM_DB="osm"
 
 # Install all the things! (if only it were all this easy)
 RUN apt-get update
@@ -19,19 +27,7 @@ RUN apt-get -yq --no-install-recommends install \
 RUN apt-get clean -y
 RUN rm -rf /var/lib/apt/lists/*
 
-#Postgis
-USER postgres
-RUN /etc/init.d/postgresql start && \
-    psql -c "CREATE USER docker WITH SUPERUSER PASSWORD 'docker';" && \
-    psql -c "CREATE DATABASE gis;" && \
-    psql -d gis -c "CREATE EXTENSION IF NOT EXISTS postgis;" && \
-    psql -d gis -c "CREATE EXTENSION IF NOT EXISTS postgis_topology;" && \
-    psql -d gis -c "CREATE EXTENSION IF NOT EXISTS fuzzystrmatch;"
-RUN echo "host all all 0.0.0.0/0 md5" >> /etc/postgresql/10/main/pg_hba.conf
-RUN echo "listen_addresses='*'" >> /etc/postgresql/10/main/postgresql.conf
-USER root
-
-#Set all environment variables to use everything we just set up
-ENV PGDATABASE=gis
-ENV PGUSER=docker
-ENV PGPASSWORD=docker
+# start
+COPY ubuntu-18-with-node-carbon-postgis.sh /apbarratt/ubuntu-18-with-node-carbon-postgis.sh
+RUN chmod 777 /apbarratt/ubuntu-18-with-node-carbon-postgis.sh
+CMD /apbarratt/ubuntu-18-with-node-carbon-postgis.sh
